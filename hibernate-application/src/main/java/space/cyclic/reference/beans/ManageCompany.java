@@ -7,7 +7,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 import space.cyclic.reference.interfaces.EagerBean;
-import space.cyclic.reference.pojo.Employee;
+import space.cyclic.reference.pojo.Company;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
@@ -15,11 +15,12 @@ import java.util.List;
 
 @EagerBean
 @Singleton
-public class ManageEmployee {
-    private static final Logger logger = Logger.getLogger(ManageEmployee.class);
+public class ManageCompany {
+    private static final Logger logger = Logger.getLogger(ManageCompany.class);
+
     private static SessionFactory sessionFactory;
 
-    public ManageEmployee() {
+    public ManageCompany() {
         sessionFactory = new Configuration().configure().buildSessionFactory();
     }
 
@@ -39,52 +40,45 @@ public class ManageEmployee {
      */
     @PostConstruct
     public void init() {
-       /* Add few employee records in database */
-        Integer empID1 = this.addEmployee("Zara", "Ali", 1000);
-        Integer empID2 = this.addEmployee("Daisy", "Das", 5000);
-        Integer empID3 = this.addEmployee("John", "Paul", 10000);
+        Integer companyIDOne = this.addCompany("BEST COMPANY", "525 LOST IN PLAIN SIGHT", 9874563521L);
+        Integer companyIDTwo = this.addCompany("MEGA CORPORATION", "654 NOT REAL STREET", 7845154112L);
+        Integer companyIDThree = this.addCompany("SOCIAL CAPITALIST", "123 FAKE LANE", 6184028296L);
 
-      /* List down all the employees */
-        this.listEmployees();
+        this.listCompanies();
 
-      /* Update employee's records */
-        this.updateEmployee(empID1, 5000);
+        this.updateCompanyPhoneNumber(companyIDOne, 31245163210L);
 
-      /* Delete an employee from the database */
-        this.deleteEmployee(empID2);
+        this.deleteCompany(companyIDTwo);
 
-      /* List down new list of the employees */
-        this.listEmployees();
+        this.listCompanies();
     }
 
-    /* Method to CREATE an employee in the database */
-    public Integer addEmployee(String fname, String lname, int salary) {
+    public Integer addCompany(String companyName, String companyAddress, long phoneNumber) {
         Transaction tx = null;
-        Integer employeeID = null;
+        Integer companyID = null;
         try (Session session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
-            Employee employee = new Employee(fname, lname, salary);
-            employeeID = (Integer) session.save(employee);
+            Company company = new Company(companyName, companyAddress, phoneNumber);
+            companyID = (Integer) session.save(company);
             tx.commit();
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
             logger.error(e);
         }
-        return employeeID;
+        return companyID;
     }
 
-    /* Method to  READ all the employees */
-    public void listEmployees() {
+    public void listCompanies() {
         Transaction tx = null;
         try (Session session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
-            List employees = session.createQuery("FROM Employee ").list();
-            for (Object employee1 : employees) {
-                Employee employee = (Employee) employee1;
-                System.out.print("First Name: " + employee.getFirstName());
-                System.out.print("  Last Name: " + employee.getLastName());
-                System.out.println("  Salary: " + employee.getSalary());
-            }
+            List companies = session.createQuery("FROM Company ").list();
+            companies.stream().forEach(companyObject -> {
+                Company company = (Company) companyObject;
+                logger.info("Name: " + company.getName() +
+                        " Address: " + company.getAddress() +
+                        " Phone Number: " + company.getPhoneNumber());
+            });
             tx.commit();
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
@@ -92,14 +86,13 @@ public class ManageEmployee {
         }
     }
 
-    /* Method to UPDATE salary for an employee */
-    public void updateEmployee(Integer EmployeeID, int salary) {
+    public void updateCompanyPhoneNumber(Integer CompanyID, long phoneNumber) {
         Transaction tx = null;
         try (Session session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
-            Employee employee = session.get(Employee.class, EmployeeID);
-            employee.setSalary(salary);
-            session.update(employee);
+            Company company = session.get(Company.class, CompanyID);
+            company.setPhoneNumber(phoneNumber);
+            session.update(company);
             tx.commit();
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
@@ -107,14 +100,12 @@ public class ManageEmployee {
         }
     }
 
-    /* Method to DELETE an employee from the records */
-    public void deleteEmployee(Integer EmployeeID) {
+    public void deleteCompany(Integer CompanyID) {
         Transaction tx = null;
         try (Session session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
-            Employee employee =
-                    (Employee) session.get(Employee.class, EmployeeID);
-            session.delete(employee);
+            Company company = session.get(Company.class, CompanyID);
+            session.delete(company);
             tx.commit();
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
@@ -124,6 +115,6 @@ public class ManageEmployee {
 
     @Override
     public String toString() {
-        return "Managed Employee Bean.";
+        return "Managed Company Bean.";
     }
 }

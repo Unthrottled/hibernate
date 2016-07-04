@@ -6,7 +6,7 @@
 <hibernate-mapping>
     <class name="space.cyclic.reference.pojo.Employee" table="EMPLOYEE">
         <meta attribute="class-description">
-            This class contains the employee detail.
+            This class contains the employee's details.
         </meta>
         <id name="id" type="int" column="id">
             <generator class="native"/>
@@ -14,5 +14,16 @@
         <property name="firstName" column="first_name" type="string"/>
         <property name="lastName" column="last_name" type="string"/>
         <property name="salary" column="salary" type="int"/>
+    </class>
+    <class name="space.cyclic.reference.pojo.Company" table="COMPANY">
+        <meta attribute="class-description">
+            This class contains the company's details
+        </meta>
+        <id name="id" type="int" column="id">
+            <generator class="native"/>
+        </id>
+        <property name="name" column="name" type="string"/>
+        <property name="address" column="address" type="string"/>
+        <property name="phoneNumber" column="phone_number" type="long"/>
     </class>
 </hibernate-mapping>

@@ -11,7 +11,7 @@
             com.mysql.jdbc.Driver
         </property>
 
-        <property name='connection.pool_size'>1</property>
+        <property name='connection.pool_size'>10</property>
 
         <property name="hibernate.connection.url">
             jdbc:mysql://localhost:3306/hibernate
@@ -20,7 +20,7 @@
             root
         </property>
 
-        <mapping resource="mapping/Employee.hbm.xml"/>
+        <mapping resource="mapping/pojo.hbm.xml"/>
 
     </session-factory>
 </hibernate-configuration>
