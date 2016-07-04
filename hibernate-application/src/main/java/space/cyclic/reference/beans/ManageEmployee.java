@@ -43,6 +43,7 @@ public class ManageEmployee {
         Integer empID1 = this.addEmployee("Zara", "Ali", 1000);
         Integer empID2 = this.addEmployee("Daisy", "Das", 5000);
         Integer empID3 = this.addEmployee("John", "Paul", 10000);
+        Integer empID4 = this.addEmployee("Bunion", "Paul", 100000);
 
       /* List down all the employees */
         this.listEmployees();
@@ -55,6 +56,12 @@ public class ManageEmployee {
 
       /* List down new list of the employees */
         this.listEmployees();
+
+        this.listEmployeesSalaryOnly();
+
+        this.listEmployeesSalaryOnly();
+
+        this.listEmployeesByFirstName("Paul");
     }
 
     /* Method to CREATE an employee in the database */
@@ -79,12 +86,47 @@ public class ManageEmployee {
         try (Session session = sessionFactory.openSession()) {
             tx = session.beginTransaction();
             List employees = session.createQuery("FROM Employee ").list();
-            for (Object employee1 : employees) {
-                Employee employee = (Employee) employee1;
-                System.out.print("First Name: " + employee.getFirstName());
-                System.out.print("  Last Name: " + employee.getLastName());
-                System.out.println("  Salary: " + employee.getSalary());
-            }
+            employees.stream().forEach(employeeObject -> {
+                Employee employee = (Employee) employeeObject;
+                logger.info("First Name: " + employee.getFirstName() +
+                        "  Last Name: " + employee.getLastName() +
+                        "  Salary: " + employee.getSalary());
+            });
+            tx.commit();
+        } catch (HibernateException e) {
+            if (tx != null) tx.rollback();
+            logger.error(e);
+        }
+    }
+
+    public void listEmployeesSalaryOnly() {
+        Transaction tx = null;
+        try (Session session = sessionFactory.openSession()) {
+            tx = session.beginTransaction();
+            List employees = session.createQuery("SELECT E.salary FROM Employee AS E").list();
+            employees.stream().forEach(employeeObject -> {
+                Integer salary = (Integer) employeeObject;
+                logger.info("Salary: " + salary);
+            });
+            tx.commit();
+        } catch (HibernateException e) {
+            if (tx != null) tx.rollback();
+            logger.error(e);
+        }
+    }
+
+    public void listEmployeesByFirstName(String firstName) {
+        Transaction tx = null;
+        try (Session session = sessionFactory.openSession()) {
+            tx = session.beginTransaction();
+            List employees = session.createQuery("SELECT E FROM Employee AS E WHERE E.firstName = :firstName")
+                    .setParameter("firstName", firstName).list();
+            employees.stream().forEach(employeeObject -> {
+                Employee employee = (Employee) employeeObject;
+                logger.info("First Name: " + employee.getFirstName() +
+                        "  Last Name: " + employee.getLastName() +
+                        "  Salary: " + employee.getSalary());
+            });
             tx.commit();
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
