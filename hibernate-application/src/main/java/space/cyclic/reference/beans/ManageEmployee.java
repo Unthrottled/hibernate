@@ -20,9 +20,9 @@ public class ManageEmployee {
     private static SessionFactory sessionFactory;
 
     public ManageEmployee() {
-        try{
+        try {
             sessionFactory = new Configuration().configure().buildSessionFactory();
-        }catch (Throwable ex) {
+        } catch (Throwable ex) {
             logger.fatal("Failed to create sessionFactory object.", ex);
             throw new ExceptionInInitializerError(ex);
         }
@@ -31,12 +31,16 @@ public class ManageEmployee {
     /**
      * Web application is set for this eager bean to be created after deployment.
      * Method below will be executed after instantiation of this singleton object.
-     *
+     * <p/>
      * Will interact with the mysql database 'hibernate' and add, remove, and
      * update n-tuple in the table.
-     *
+     * <p/>
      * My way of having a main method in a web application. Could be replaced by
      * another way, but this is what I know.
+     * <p/>
+     * All standard output, ie 'System.out.println()' or 'System.err.println()' is
+     * redirected to output file hibernate.log, to path configured by system property:
+     * 'space.cyclic.reference.log.path'
      */
     @PostConstruct
     public void init() {
