@@ -12,6 +12,7 @@ import space.cyclic.reference.pojo.Company;
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Objects;
 
 @EagerBean
 @Singleton
@@ -56,7 +57,9 @@ public class ManageCompany {
     public Integer addCompany(String companyName, String companyAddress, long phoneNumber) {
         Transaction tx = null;
         Integer companyID = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             tx = session.beginTransaction();
             Company company = new Company(companyName, companyAddress, phoneNumber);
             companyID = (Integer) session.save(company);
@@ -64,13 +67,18 @@ public class ManageCompany {
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
         return companyID;
     }
 
     public void listCompanies() {
         Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             tx = session.beginTransaction();
             List companies = session.createQuery("FROM Company ").list();
             companies.stream().forEach(companyObject -> {
@@ -83,12 +91,17 @@ public class ManageCompany {
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 
     public void updateCompanyPhoneNumber(Integer CompanyID, long phoneNumber) {
         Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             tx = session.beginTransaction();
             Company company = session.get(Company.class, CompanyID);
             company.setPhoneNumber(phoneNumber);
@@ -97,12 +110,17 @@ public class ManageCompany {
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 
     public void deleteCompany(Integer CompanyID) {
         Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
             tx = session.beginTransaction();
             Company company = session.get(Company.class, CompanyID);
             session.delete(company);
@@ -110,6 +128,9 @@ public class ManageCompany {
         } catch (HibernateException e) {
             if (tx != null) tx.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 

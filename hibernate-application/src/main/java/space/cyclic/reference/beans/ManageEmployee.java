@@ -1,17 +1,16 @@
 package space.cyclic.reference.beans;
 
 import org.apache.log4j.Logger;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
-import org.hibernate.Transaction;
+import org.hibernate.*;
 import org.hibernate.cfg.Configuration;
+import org.hibernate.criterion.Projections;
 import space.cyclic.reference.interfaces.EagerBean;
 import space.cyclic.reference.pojo.Employee;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Objects;
 
 @EagerBean
 @Singleton
@@ -39,22 +38,18 @@ public class ManageEmployee {
      */
     @PostConstruct
     public void init() {
-       /* Add few employee records in database */
         Integer empID1 = this.addEmployee("Zara", "Ali", 1000);
         Integer empID2 = this.addEmployee("Daisy", "Das", 5000);
         Integer empID3 = this.addEmployee("John", "Paul", 10000);
         Integer empID4 = this.addEmployee("Bunion", "Paul", 100000);
+        Integer empID5 = this.addEmployee("Mohd", "Yasee", 3000);
 
-      /* List down all the employees */
         this.listEmployees();
 
-      /* Update employee's records */
         this.updateEmployee(empID1, 5000);
 
-      /* Delete an employee from the database */
         this.deleteEmployee(empID2);
 
-      /* List down new list of the employees */
         this.listEmployees();
 
         this.listEmployeesSalaryOnly();
@@ -62,29 +57,38 @@ public class ManageEmployee {
         this.listEmployeesSalaryOnly();
 
         this.listEmployeesByFirstName("Paul");
+
+        this.printNumberOfEmployees();
+
+        this.printTotalSalaryForAllEmployees();
     }
 
-    /* Method to CREATE an employee in the database */
     public Integer addEmployee(String fname, String lname, int salary) {
-        Transaction tx = null;
+        Transaction transaction = null;
         Integer employeeID = null;
-        try (Session session = sessionFactory.openSession()) {
-            tx = session.beginTransaction();
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
             Employee employee = new Employee(fname, lname, salary);
             employeeID = (Integer) session.save(employee);
-            tx.commit();
+            transaction.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (transaction != null) transaction.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
         return employeeID;
     }
 
-    /* Method to  READ all the employees */
     public void listEmployees() {
-        Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
-            tx = session.beginTransaction();
+        Transaction transaction = null;
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
             List employees = session.createQuery("FROM Employee ").list();
             employees.stream().forEach(employeeObject -> {
                 Employee employee = (Employee) employeeObject;
@@ -92,33 +96,43 @@ public class ManageEmployee {
                         "  Last Name: " + employee.getLastName() +
                         "  Salary: " + employee.getSalary());
             });
-            tx.commit();
+            transaction.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (transaction != null) transaction.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 
     public void listEmployeesSalaryOnly() {
-        Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
-            tx = session.beginTransaction();
+        Transaction transaction = null;
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
             List employees = session.createQuery("SELECT E.salary FROM Employee AS E").list();
             employees.stream().forEach(employeeObject -> {
                 Integer salary = (Integer) employeeObject;
                 logger.info("Salary: " + salary);
             });
-            tx.commit();
+            transaction.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (transaction != null) transaction.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 
     public void listEmployeesByFirstName(String firstName) {
-        Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
-            tx = session.beginTransaction();
+        Transaction transaction = null;
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
             List employees = session.createQuery("SELECT E FROM Employee AS E WHERE E.firstName = :firstName")
                     .setParameter("firstName", firstName).list();
             employees.stream().forEach(employeeObject -> {
@@ -127,40 +141,96 @@ public class ManageEmployee {
                         "  Last Name: " + employee.getLastName() +
                         "  Salary: " + employee.getSalary());
             });
-            tx.commit();
+            transaction.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (transaction != null) transaction.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 
-    /* Method to UPDATE salary for an employee */
     public void updateEmployee(Integer EmployeeID, int salary) {
-        Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
-            tx = session.beginTransaction();
+        Transaction transaction = null;
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
             Employee employee = session.get(Employee.class, EmployeeID);
             employee.setSalary(salary);
             session.update(employee);
-            tx.commit();
+            transaction.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (transaction != null) transaction.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 
-    /* Method to DELETE an employee from the records */
     public void deleteEmployee(Integer EmployeeID) {
-        Transaction tx = null;
-        try (Session session = sessionFactory.openSession()) {
-            tx = session.beginTransaction();
+        Transaction transaction = null;
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
             Employee employee =
                     (Employee) session.get(Employee.class, EmployeeID);
             session.delete(employee);
-            tx.commit();
+            transaction.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (transaction != null) transaction.rollback();
             logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
+        }
+    }
+
+    public void printNumberOfEmployees() {
+        Transaction transaction = null;
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
+            Criteria cr = session.createCriteria(Employee.class);
+
+            // To get total row count.
+            cr.setProjection(Projections.rowCount());
+            List rowCount = cr.list();
+
+            logger.info("Total Employee Count: " + rowCount.get(0));
+            transaction.commit();
+        } catch (HibernateException e) {
+            if (transaction != null) transaction.rollback();
+            logger.warn(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
+        }
+    }
+
+    public void printTotalSalaryForAllEmployees() {
+        Session session = null;
+        Transaction transaction = null;
+        try {
+            session = sessionFactory.openSession();
+            transaction = session.beginTransaction();
+            Criteria sessionCriteria = session.createCriteria(Employee.class);
+
+            sessionCriteria.setProjection(Projections.sum("salary"));
+            List totalSalary = sessionCriteria.list();
+
+            logger.info("Total Salary: " + totalSalary.get(0));
+            transaction.commit();
+        } catch (HibernateException e) {
+            if (transaction != null) transaction.rollback();
+            logger.warn(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
         }
     }
 
