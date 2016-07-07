@@ -19,6 +19,9 @@
         <property name="hibernate.connection.username">
             root
         </property>
+        <property name="hibernate.jdbc.batch_size">
+            50
+        </property>
 
         <mapping resource="mapping/pojo.hbm.xml"/>
 

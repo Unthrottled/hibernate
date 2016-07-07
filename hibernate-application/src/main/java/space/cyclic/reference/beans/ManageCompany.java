@@ -13,6 +13,7 @@ import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 @EagerBean
 @Singleton
@@ -52,6 +53,8 @@ public class ManageCompany {
         this.deleteCompany(companyIDTwo);
 
         this.listCompanies();
+
+        this.batchAddCompany("COMPANY NUMBER ", " MAIN STREET", 1000000000L);
     }
 
     public Integer addCompany(String companyName, String companyAddress, long phoneNumber) {
@@ -72,6 +75,32 @@ public class ManageCompany {
                 session.close();
         }
         return companyID;
+    }
+
+    private final Random ranbo = new Random(9001);
+    public void batchAddCompany(String companyName, String companyAddress, long phoneNumber) {
+        Transaction tx = null;
+        Session session = null;
+        try {
+            session = sessionFactory.openSession();
+            tx = session.beginTransaction();
+            for (int index = 0; index < 1000; ++index) {
+                Company company = new Company(companyName + ranbo.nextInt(), companyAddress + ranbo.nextInt(), phoneNumber + ranbo.nextInt());
+                session.save(company);
+                if (index % 50 == 0){// Same as the JDBC batch size
+                    //flush a batch of inserts and release memory
+                    session.flush();
+                    session.clear();
+                }
+            }
+            tx.commit();
+        } catch (HibernateException e) {
+            if (tx != null) tx.rollback();
+            logger.error(e);
+        } finally {
+            if (Objects.nonNull(session))
+                session.close();
+        }
     }
 
     public void listCompanies() {
